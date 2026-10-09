@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Grok Session Dashboard — Enhancements vs Base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0f14;--bg2:#121821;--bg3:#1a2330;--border:#2a3544;--text:#e8eef6;--muted:#8b9bb0;--accent:#3d9cf0;--accent2:#7c5cff;--ok:#3dd68c;--warn:#f5a524;--err:#f2555a;--card:#141b25;--font:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font-family:var(--font);background:radial-gradient(1200px 600px at 10% -10%,#1a2740 0%,transparent 50%),radial-gradient(900px 500px at 100% 0%,#1e1635 0%,transparent 45%),var(--bg);color:var(--text)}
+button{font-family:inherit;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);border-radius:8px;padding:8px 14px;font-weight:500}
+button:hover{border-color:var(--accent)}button.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.sidebar{border-right:1px solid var(--border);background:rgba(12,16,22,.92);padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{font-weight:700;font-size:1.05rem}.brand span{color:var(--accent)}
+.sub{color:var(--muted);font-size:.78rem;margin:4px 0 18px}
+.nav{display:flex;flex-direction:column;gap:6px}.nav button{text-align:left;width:100%}
+.main{padding:28px 32px 48px;max-width:1200px}
+h1{margin:0 0 8px;font-size:1.65rem;letter-spacing:-.03em}
+.lead{color:var(--muted);max-width:65ch;line-height:1.5;margin:0 0 20px}
+.grid{display:grid;gap:14px}.cols-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.cols-2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.card h3{margin:0 0 8px;font-size:.95rem}
+.metric{font-size:1.75rem;font-weight:700}.metric small{display:block;font-size:.75rem;color:var(--muted);font-weight:500}
+.badge{display:inline-flex;align-items:center;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:3px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.badge.ok{color:var(--ok);border-color:rgba(61,214,140,.35);background:rgba(61,214,140,.08)}
+.badge.warn{color:var(--warn);border-color:rgba(245,165,36,.35);background:rgba(245,165,36,.08)}
+.badge.blue{color:var(--accent);border-color:rgba(61,156,240,.35);background:rgba(61,156,240,.08)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase}
+.mono{font-family:var(--mono);font-size:.82rem}.muted{color:var(--muted)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+input,select{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-family:inherit;min-width:200px}
+.list{display:flex;flex-direction:column;gap:10px}
+.list-item{border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:var(--bg2)}
+.list-item h4{margin:0 0 4px}.list-item p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
+.pre{font-family:var(--mono);font-size:.78rem;background:#0a0e13;border:1px solid var(--border);border-radius:10px;padding:14px;overflow:auto;white-space:pre-wrap;line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.footer{margin-top:32px;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border);padding-top:16px}
+.tree ul{list-style:none;padding-left:16px;margin:6px 0}.tree>ul{padding-left:0}
+.tree .node{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer}
+.tree .node:hover{background:var(--bg3)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.hidden{display:none}
+@media(max-width:860px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">Grok <span>Session</span> Dashboard</div>
+    <div class="sub">Enhancements · Skills · Doctor · Deploy</div>
+    <nav class="nav" id="nav"></nav>
+    <div style="margin-top:24px">
+      <div class="badge ok" id="cycleBadge">cycle</div>
+      <div class="badge blue" style="margin-top:8px">online</div>
+      <div class="badge" style="margin-top:8px">/effort-100</div>
+    </div>
+  </aside>
+  <main class="main">
+    <div id="view"></div>
+    <div class="footer" id="footer"></div>
+  </main>
+</div>
+<script>
+const DOMAIN_LABEL={dom_cognition:'Cognition',dom_communication:'Communication',dom_technical:'Technical Practice',dom_meta:'Meta-Skills',dom_ops:'Operations & Integrations',dom_creative:'Creative & Media',dom_data:'Data & Documents'};
+const NAV=[
+  ['overview','Overview'],['enhancements','Enhancements vs Base'],['skills','Skills Encyclopedia'],
+  ['tree','Master Skill Tree'],['doctor','Doctor / Status'],['logs','Logs & Runtime'],
+  ['selfdev','Self-Dev Resources'],['insights','Emergent Insights'],['inspect','Full Inspect']
+];
+const DATA = {"generatedAt": "2026-10-09T02:28:19.405969Z", "cycle": 1, "skills": [{"id": "sk_9000-word-minimum", "name": "9000 Word Minimum", "definition": "Use a 9000-word minimum. Source-faithful reference for documentation and application-development planning.", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_agent-orchestration", "name": "Agent Orchestration", "definition": "Divide a large investigation among focused research workers and combine their results. Use when several independent questions can be researched separately.", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_apple-notes", "name": "Apple Notes", "definition": "Create, view, edit, delete, search, move, or export Apple Notes via the memo CLI on macOS.", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_archivist", "name": "Archivist", "definition": "Activate when user references The Archivist persona, strict empirical fact-driven database mode, objective data-only responses without disclaimers or moralizing, or massive research protocols involvin", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_batch-api-wrapper", "name": "Batch API Wrapper", "definition": "Parallel batch HTTP client with per-item OAuth2 client-credentials. Delegates to external-api-wrapper. Trigger on batch-api-wrapper, batchapiwrapper, multi-API batch, or OAuth2 batch.", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_blacksmith-testbox", "name": "Blacksmith Testbox", "definition": "Run Blacksmith Testbox for CI-parity checks, secrets, hosted services, migrations, or builds local cannot reproduce.", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_bluebubbles", "name": "Bluebubbles", "definition": "Send and manage iMessages via BlueBubbles, including attachments, tapbacks, edits, replies, and groups.", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_clawhub", "name": "Clawhub", "definition": "Search, install, update, sync, or publish agent skills with the ClawHub CLI and registry.", "domain": "dom_ops", "tags": ["distill-v2-harden", "session-skill"]}, {"id": "sk_coherent-communication", "name": "Coherent Communication", "definition": "Guide production of coherent structured speech with proper vocabulary flowing prose narrative techniques and linguistic foundations. Use when responses require high coherence complete thoughts logical", "domain": "dom_communication", "tags": ["autoloop", "session-skill"]}, {"id": "sk_common-sense-logic-critical-thinking", "name": "Common Sense Logic Critical Thinking", "definition": "Use maximum common sense, logic, and critical thinking. Source-faithful reference for documentation and application-development planning.", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_continue-next-or-continue", "name": "Continue Next Or Continue", "definition": "Continue when the user says \u201cnext\u201d or \u201ccontinue\u201d. Source-faithful reference for documentation and application-development planning.", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_document-ingestion", "name": "Document Ingestion", "definition": "Use for tasks involving document parsing, extraction, ingestion into AI/RAG systems, organizing PDFs/Word/images in Google Drive, automation scripts for classification and routing. Triggers include do", "domain": "dom_data", "tags": ["autoloop", "session-skill"]}, {"id": "sk_document-intelligence", "name": "Document Intelligence", "definition": "Document extraction and understanding skill. Handles PDFs, text, tables, metadata, OCR fallback, layout analysis, and structured output. Triggers on PDF, document parsing, extract text/tables, OCR, or", "domain": "dom_data", "tags": ["autoloop", "session-skill"]}, {"id": "sk_each-structured-prompt-research", "name": "Each Structured Prompt Research", "definition": "Use each individually structured prompt in the investigation. Source-faithful reference for documentation and application-development planning.", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_epstein-pdf-batch-ingest", "name": "Epstein PDF Batch Ingest", "definition": "Ingest and organize operator-held public Epstein-related PDF packs into an ordered research vault with hashing, metadata, name/date extraction and SOLID/MAYBE tagging. Triggers on Epstein PDF ingest, ", "domain": "dom_data", "tags": ["autoloop", "session-skill"]}, {"id": "sk_ethical-data-harvesting", "name": "Ethical Data Harvesting", "definition": "Structured cookbook with 20 ethical recipes for legal data harvesting from public directories, databases, APIs, and online resources. Use for responsible collection of publicly available data, complia", "domain": "dom_data", "tags": ["autoloop", "session-skill"]}, {"id": "sk_ethical-scraper-orchestration", "name": "Ethical Scraper Orchestration", "definition": "Multi-agent style orchestration for ethical public-page collection \u2014 Scout, Parser, Validator, Rate Manager, Ethics Compliance. Public pages and official sources only. Triggers on ethical scraper, p", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_external-api-wrapper", "name": "External API Wrapper", "definition": "Call one or many external HTTP APIs with retries, bearer/basic auth, optional OAuth2 client-credentials, and optional local webhook wait. Trigger on external API wrapper, batch API, CALL_EXTERNAL_TOOL", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_game-dev", "name": "Game Dev", "definition": "Build playable browser games (Babylon.js) end-to-end using the godogen production pipeline adapted to Manus. Use when the user wants to make, generate, rebuild, or substantially extend a web/browser g", "domain": "dom_creative", "tags": ["autoloop", "session-skill"]}, {"id": "sk_github", "name": "Github", "definition": "Use gh for GitHub issues, PR status, CI logs, comments, reviews, releases, and API queries.", "domain": "dom_ops", "tags": ["top5-harden", "session-skill"]}, {"id": "sk_gog", "name": "Gog", "definition": "Google Workspace CLI for Gmail, Calendar, Drive, Contacts, Sheets, and Docs. Requires OAuth setup.", "domain": "dom_ops", "tags": ["top5-harden", "session-skill"]}, {"id": "sk_grok-4-20-multi-agent", "name": "Grok 4 20 Multi Agent", "definition": "Apply Grok 4.20 native multi-agent collaboration \u2014 Captain Grok, Harper (research), Benjamin (logic/code), Lucas (contrarian). Use for complex research, fact-checked answers, math/code verification,", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_grok-build-plugins", "name": "Grok Build Plugins", "definition": "Author, layout, test, and publish Grok Build plugins \u2014 skills, slash commands, agents, hooks, MCP/LSP, marketplace catalog entries. Use when creating a plugin, writing plugin.json, marketplace SHA p", "domain": "dom_technical", "tags": ["autoloop", "session-skill"]}, {"id": "sk_issue-triage", "name": "Issue Triage", "definition": "Audit open issues, categorize, detect duplicates, cross-reference PRs, assess risk, and post comments. Args include all, issue numbers, or en/fr. No arg means audit only in French.", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_mcporter", "name": "MCPorter", "definition": "List, configure, authenticate, call, and inspect MCP servers and tools with mcporter over HTTP or stdio.", "domain": "dom_ops", "tags": ["top5-harden", "session-skill"]}, {"id": "sk_mega-skill", "name": "Mega Skill", "definition": "Multi-file mega skill with router plus API, compliance, OSINT, and artifact modules. Trigger on mega-skill, mega_skill, router.py, batch_api, oss_gate, combined_work, billing_detector, osint recon, ar", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_mongo-tom-roleplay", "name": "Mongo Tom Roleplay", "definition": "Respond as Mongo Tom. Source-faithful reference for documentation and application-development planning.", "domain": "dom_communication", "tags": ["autoloop", "session-skill"]}, {"id": "sk_nano-pdf", "name": "Nano PDF", "definition": "Edit PDFs with natural-language instructions using the nano-pdf CLI.", "domain": "dom_creative", "tags": ["distill-v2-harden", "session-skill"]}, {"id": "sk_next-investigation-trigger", "name": "Next Investigation Trigger", "definition": "The investigation is \u201cNEXT!\u201d. Source-faithful reference for documentation and application-development planning.", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_oss-compliance-gate", "name": "OSS Compliance Gate", "definition": "CI gate for third-party Android licenses. Forbids jlatexmath-android (GPL-2.0), writes THIRD-PARTY-NOTICES.txt on a clean inventory, and records Play Billing SDK terms. Trigger on compliance gate, thi", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_obsidian-vault-maintainer", "name": "Obsidian Vault Maintainer", "definition": "Maintain an Obsidian-friendly memory wiki vault with wikilinks, frontmatter, and official Obsidian CLI awareness.", "domain": "dom_technical", "tags": ["", "session-skill"]}, {"id": "sk_omnivoice-api", "name": "Omnivoice API", "definition": "Work with the OmniVoice / VoiceStudio FastAPI backend \u2014 routers, auth gates, model install, voice profiles, OpenAI-compat audio, batch dub, dictation, and community gallery. Use when changing or add", "domain": "dom_creative", "tags": ["autoloop", "session-skill"]}, {"id": "sk_openai-whisper-api", "name": "Openai Whisper API", "definition": "Transcribe audio via OpenAI Audio Transcriptions API (Whisper).", "domain": "dom_creative", "tags": ["autoloop", "session-skill"]}, {"id": "sk_pdf-page-section-breakdown", "name": "PDF Page Section Breakdown", "definition": "Break down every section and every page of the provided PDF. Source-faithful reference for documentation and application-development planning.", "domain": "dom_data", "tags": ["autoloop", "session-skill"]}, {"id": "sk_play-billing-activation-detector", "name": "Play Billing Activation Detector", "definition": "Detect whether Google Play Billing is only a Gradle dependency or actually wired for purchases. Scans BillingClient usage, product IDs, and Play Console hints. Trigger on billing activation, BillingCl", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_postgresql-sql", "name": "Postgresql SQL", "definition": "Helps write review and optimize SQL queries for PostgreSQL. Triggers on requests to create SQL queries, review existing queries, debug SQL errors, performance tuning, or PostgreSQL-specific syntax lik", "domain": "dom_data", "tags": ["autoloop", "session-skill"]}, {"id": "sk_prose", "name": "Prose", "definition": "OpenProse VM skill pack. Activate on any `prose` command, .prose files, or OpenProse mentions; orchestrates multi-agent workflows.", "domain": "dom_communication", "tags": ["", "session-skill"]}, {"id": "sk_qqbot-channel", "name": "Qqbot Channel", "definition": "Query QQ channel lists, subchannels, members, posts, announcements, and schedules via the QQ open platform API.", "domain": "dom_ops", "tags": ["distill-v2-harden", "session-skill"]}, {"id": "sk_rtk-triage", "name": "Rtk Triage", "definition": "Run issue triage and PR triage together, then cross-check for double coverage, security gaps, P0 items without a PR, and internal conflicts. Saves a dated RTK report. Args include en/fr and save.", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_run-everything-activation", "name": "Run Everything Activation", "definition": "\u201cRun everything\u201d and immediate activation. Source-faithful reference for documentation and application-development planning.", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_self-dev-resources", "name": "Self Dev Resources", "definition": "Curated and actionable resources for deliberate self-development across skills, knowledge, and habits. Use for learning plans, resource recommendations, practice frameworks, habit design, or building ", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_skill-tree-engine", "name": "Skill Tree Engine", "definition": "Indefinite skill-tree engine that distills inputs into atomic skills, rebuilds master and learned knowledge trees, updates a skills encyclopedia, and emits emergent insights plus change logs. Trigger ", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_swarm-agent-framework", "name": "Swarm Agent Framework", "definition": "Complex swarm/agent framework orchestration. Source-faithful reference for documentation and application-development planning.", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_tdd-rust", "name": "TDD Rust", "definition": "TDD workflow for RTK filter development. Red-Green-Refactor with Rust idioms. Real fixtures, token savings assertions, snapshot tests with insta. Auto-triggers on new filter implementation.", "domain": "dom_ops", "tags": ["autoloop", "session-skill"]}, {"id": "sk_tenant-misconceptions-rebuttal", "name": "Tenant Misconceptions Rebuttal", "definition": "Catalog and aggressively dismantle the most common misconceptions about tenant rights and landlord powers. Use when an opponent or audience asserts that tenants have no rights landlords can do whateve", "domain": "dom_communication", "tags": ["autoloop", "session-skill"]}, {"id": "sk_tmux", "name": "Tmux", "definition": "Remote-control tmux sessions for interactive CLIs by sending keystrokes and scraping pane output.", "domain": "dom_ops", "tags": ["distill-v2-harden", "session-skill"]}, {"id": "sk_tool-use", "name": "Tool Use", "definition": "Describe and apply research tools in a traceable way. Use when a task involves files, searches, code review, calculations, or external services.", "domain": "dom_meta", "tags": ["autoloop", "session-skill"]}, {"id": "sk_video-frames", "name": "Video Frames", "definition": "Extract frames or short clips from videos using ffmpeg.", "domain": "dom_creative", "tags": ["autoloop", "session-skill"]}, {"id": "sk_vite", "name": "Vite", "definition": "Expert guidance for Vite development with modern build tooling, HMR, framework integrations, and performance optimization", "domain": "dom_creative", "tags": ["autoloop", "session-skill"]}, {"id": "sk_wacli", "name": "Wacli", "definition": "Send third-party WhatsApp messages or sync and search WhatsApp history via wacli, not normal active chats.", "domain": "dom_ops", "tags": ["distill-v2-harden", "session-skill"]}], "tree": {"id": "root", "name": "Master Skills", "children": [{"id": "dom_communication", "name": "Communication", "atomId": null, "children": [{"id": "node_coherent-communication", "name": "Coherent Communication", "atomId": "sk_coherent-communication", "children": []}, {"id": "node_mongo-tom-roleplay", "name": "Mongo Tom Roleplay", "atomId": "sk_mongo-tom-roleplay", "children": []}, {"id": "node_prose", "name": "Prose", "atomId": "sk_prose", "children": []}, {"id": "node_tenant-misconceptions-rebuttal", "name": "Tenant Misconceptions Rebuttal", "atomId": "sk_tenant-misconceptions-rebuttal", "children": []}]}, {"id": "dom_technical", "name": "Technical Practice", "atomId": null, "children": [{"id": "node_grok-build-plugins", "name": "Grok Build Plugins", "atomId": "sk_grok-build-plugins", "children": []}, {"id": "node_obsidian-vault-maintainer", "name": "Obsidian Vault Maintainer", "atomId": "sk_obsidian-vault-maintainer", "children": []}]}, {"id": "dom_meta", "name": "Meta-Skills", "atomId": null, "children": [{"id": "node_9000-word-minimum", "name": "9000 Word Minimum", "atomId": "sk_9000-word-minimum", "children": []}, {"id": "node_agent-orchestration", "name": "Agent Orchestration", "atomId": "sk_agent-orchestration", "children": []}, {"id": "node_archivist", "name": "Archivist", "atomId": "sk_archivist", "children": []}, {"id": "node_common-sense-logic-critical-thinking", "name": "Common Sense Logic Critical Thinking", "atomId": "sk_common-sense-logic-critical-thinking", "children": []}, {"id": "node_continue-next-or-continue", "name": "Continue Next Or Continue", "atomId": "sk_continue-next-or-continue", "children": []}, {"id": "node_each-structured-prompt-research", "name": "Each Structured Prompt Research", "atomId": "sk_each-structured-prompt-research", "children": []}, {"id": "node_ethical-scraper-orchestration", "name": "Ethical Scraper Orchestration", "atomId": "sk_ethical-scraper-orchestration", "children": []}, {"id": "node_grok-4-20-multi-agent", "name": "Grok 4 20 Multi Agent", "atomId": "sk_grok-4-20-multi-agent", "children": []}, {"id": "node_next-investigation-trigger", "name": "Next Investigation Trigger", "atomId": "sk_next-investigation-trigger", "children": []}, {"id": "node_run-everything-activation", "name": "Run Everything Activation", "atomId": "sk_run-everything-activation", "children": []}, {"id": "node_self-dev-resources", "name": "Self Dev Resources", "atomId": "sk_self-dev-resources", "children": []}, {"id": "node_skill-tree-engine", "name": "Skill Tree Engine", "atomId": "sk_skill-tree-engine", "children": []}, {"id": "node_swarm-agent-framework", "name": "Swarm Agent Framework", "atomId": "sk_swarm-agent-framework", "children": []}, {"id": "node_tool-use", "name": "Tool Use", "atomId": "sk_tool-use", "children": []}]}, {"id": "dom_ops", "name": "Operations & Integrations", "atomId": null, "children": [{"id": "node_apple-notes", "name": "Apple Notes", "atomId": "sk_apple-notes", "children": []}, {"id": "node_batch-api-wrapper", "name": "Batch API Wrapper", "atomId": "sk_batch-api-wrapper", "children": []}, {"id": "node_blacksmith-testbox", "name": "Blacksmith Testbox", "atomId": "sk_blacksmith-testbox", "children": []}, {"id": "node_bluebubbles", "name": "Bluebubbles", "atomId": "sk_bluebubbles", "children": []}, {"id": "node_clawhub", "name": "Clawhub", "atomId": "sk_clawhub", "children": []}, {"id": "node_external-api-wrapper", "name": "External API Wrapper", "atomId": "sk_external-api-wrapper", "children": []}, {"id": "node_github", "name": "Github", "atomId": "sk_github", "children": []}, {"id": "node_gog", "name": "Gog", "atomId": "sk_gog", "children": []}, {"id": "node_issue-triage", "name": "Issue Triage", "atomId": "sk_issue-triage", "children": []}, {"id": "node_mcporter", "name": "MCPorter", "atomId": "sk_mcporter", "children": []}, {"id": "node_mega-skill", "name": "Mega Skill", "atomId": "sk_mega-skill", "children": []}, {"id": "node_oss-compliance-gate", "name": "OSS Compliance Gate", "atomId": "sk_oss-compliance-gate", "children": []}, {"id": "node_play-billing-activation-detector", "name": "Play Billing Activation Detector", "atomId": "sk_play-billing-activation-detector", "children": []}, {"id": "node_qqbot-channel", "name": "Qqbot Channel", "atomId": "sk_qqbot-channel", "children": []}, {"id": "node_rtk-triage", "name": "Rtk Triage", "atomId": "sk_rtk-triage", "children": []}, {"id": "node_tdd-rust", "name": "TDD Rust", "atomId": "sk_tdd-rust", "children": []}, {"id": "node_tmux", "name": "Tmux", "atomId": "sk_tmux", "children": []}, {"id": "node_wacli", "name": "Wacli", "atomId": "sk_wacli", "children": []}]}, {"id": "dom_creative", "name": "Creative & Media", "atomId": null, "children": [{"id": "node_game-dev", "name": "Game Dev", "atomId": "sk_game-dev", "children": []}, {"id": "node_nano-pdf", "name": "Nano PDF", "atomId": "sk_nano-pdf", "children": []}, {"id": "node_omnivoice-api", "name": "Omnivoice API", "atomId": "sk_omnivoice-api", "children": []}, {"id": "node_openai-whisper-api", "name": "Openai Whisper API", "atomId": "sk_openai-whisper-api", "children": []}, {"id": "node_video-frames", "name": "Video Frames", "atomId": "sk_video-frames", "children": []}, {"id": "node_vite", "name": "Vite", "atomId": "sk_vite", "children": []}]}, {"id": "dom_data", "name": "Data & Documents", "atomId": null, "children": [{"id": "node_document-ingestion", "name": "Document Ingestion", "atomId": "sk_document-ingestion", "children": []}, {"id": "node_document-intelligence", "name": "Document Intelligence", "atomId": "sk_document-intelligence", "children": []}, {"id": "node_epstein-pdf-batch-ingest", "name": "Epstein PDF Batch Ingest", "atomId": "sk_epstein-pdf-batch-ingest", "children": []}, {"id": "node_ethical-data-harvesting", "name": "Ethical Data Harvesting", "atomId": "sk_ethical-data-harvesting", "children": []}, {"id": "node_pdf-page-section-breakdown", "name": "PDF Page Section Breakdown", "atomId": "sk_pdf-page-section-breakdown", "children": []}, {"id": "node_postgresql-sql", "name": "Postgresql SQL", "atomId": "sk_postgresql-sql", "children": []}]}]}, "insights": [{"id": "ins_1", "text": "Session carries 50 server-skills vs base (0 bundled).", "severity": "high"}, {"id": "ins_2", "text": "Connected services: Vercel, GitHub, Google Drive, Voice, Automations, HyperFrames.", "severity": "high"}, {"id": "ins_3", "text": "Many autoloop skills are source-faithful PDF encyclopedia entries (non-operational).", "severity": "medium"}, {"id": "ins_4", "text": "Imagine media stack + remote sandbox + OAuth connectors form the largest capability delta.", "severity": "high"}], "critic": [{"id": "c1", "text": "mcporter CLI not installed despite skill present", "severity": "med"}, {"id": "c2", "text": "bundled-skills.json empty", "severity": "low"}], "engine": {"version": "1.0.0", "cycle": 1, "updatedAt": "2026-10-09T02:28:19.405969Z", "modes": ["markdown", "dashboard", "json"], "upgrades": ["Seeded all 50 session skills from inventory; domain ontology expanded to 7 domains"]}, "session": {"githubUser": "cantgetalonggta-png", "vercelUser": "nevagetalong-1199", "vercelTeamId": "team_kgQcPVmumwtmK3MdAGlxKJtg", "os": "Debian 12 bookworm", "kernel": "6.12.8+", "cpus": 2, "memGi": 1.9, "diskFreeG": 46, "node": "v20.20.2", "npm": "10.8.2", "skillCount": 50, "mcporterInstalled": false, "connected": ["Vercel", "GitHub", "Google Drive", "Voice", "Automations", "HyperFrames by HeyGen"]}};
+let tab='overview', q='', domain='all';
+
+function boot(){
+  document.getElementById('cycleBadge').textContent='cycle '+DATA.cycle;
+  document.getElementById('footer').textContent=`Grok Session Dashboard · cycle ${DATA.cycle} · ${DATA.generatedAt} · /dashboard /Xhigh /effort-100 /online`;
+  const nav=document.getElementById('nav');
+  NAV.forEach(([id,label])=>{
+    const b=document.createElement('button'); b.textContent=label; b.dataset.id=id;
+    b.onclick=()=>{tab=id; render();};
+    nav.appendChild(b);
+  });
+  render();
+}
+function setActive(){
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active', b.dataset.id===tab));
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c]));}
+function metric(label,value,note){return `<div class="card"><div class="metric">${esc(value)}<small>${esc(label)}</small></div>${note?`<p class="muted" style="margin:8px 0 0;font-size:.82rem">${esc(note)}</p>`:''}</div>`;}
+function renderTree(node, depth=0){
+  const kids=node.children||[];
+  const id='n_'+node.id;
+  let h=`<li><div class="node" onclick="toggleTree('${id}')"><span class="dot"></span><strong>${esc(node.name)}</strong>${node.atomId?`<span class="mono muted">${esc(node.atomId)}</span>`:''}${kids.length?`<span class="badge">+ ${kids.length}</span>`:''}</div>`;
+  if(kids.length) h+=`<ul id="${id}" class="${depth<1?'':'hidden'}">${kids.map(c=>renderTree(c,depth+1)).join('')}</ul>`;
+  return h+'</li>';
+}
+window.toggleTree=function(id){const el=document.getElementById(id); if(el) el.classList.toggle('hidden');};
+
+function render(){
+  setActive();
+  const s=DATA.session, v=document.getElementById('view');
+  if(tab==='overview'){
+    v.innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:16px;flex-wrap:wrap">
+      <div><h1>Session-Specific Report</h1>
+      <p class="lead">Live inventory of this Grok workspace versus a base (vanilla) session. Distilled ${s.skillCount} server skills, connected services, sandbox, and Imagine stack.</p></div>
+      <div class="row"><span class="badge ok">Doctor: operational</span><span class="badge warn">mcporter bin missing</span></div></div>
+      <div class="grid cols-3">
+        ${metric('Server skills loaded', s.skillCount, 'Base bundled-skills.json = 0')}
+        ${metric('Connected services', s.connected.length, s.connected.join(' · '))}
+        ${metric('Imagine + Sandbox', 'ON', 'Remote computer + media pipeline')}
+        ${metric('GitHub', s.githubUser, 'gh authenticated')}
+        ${metric('Vercel', s.vercelUser, 'team '+s.vercelTeamId.slice(0,16)+'…')}
+        ${metric('Node runtime', s.node, 'npm '+s.npm+' · '+s.cpus+' vCPU · '+s.memGi+' GiB')}
+      </div>
+      <div class="grid cols-2" style="margin-top:16px">
+        <div class="card"><h3>What this session adds</h3>
+          <ul class="muted" style="margin:0;padding-left:18px;line-height:1.6">
+            <li>50 domain skills (ops, meta, creative, data, communication, technical)</li>
+            <li>OAuth connectors: Vercel, GitHub, Drive, Voice, Automations, HyperFrames</li>
+            <li>Remote sandbox (Debian 12) with Node, gh</li>
+            <li>Grok Imagine image/video pipeline</li>
+            <li>Skill-tree engine cycle ${DATA.cycle} + encyclopedia + insights</li>
+          </ul></div>
+        <div class="card"><h3>Base version lacks</h3>
+          <ul class="muted" style="margin:0;padding-left:18px;line-height:1.6">
+            <li>Empty bundled-skills registry</li>
+            <li>No skill-tree persistence or dashboard</li>
+            <li>No guaranteed connector surface</li>
+            <li>No automatic distillation of session capabilities</li>
+            <li>No live doctor / enhancement report module</li>
+          </ul></div>
+      </div>`;
+  } else if(tab==='enhancements'){
+    const rows=[
+      ['Server skills','0',String(s.skillCount),'Workflow automation, domain expertise'],
+      ['Skill-tree engine','Absent','Cycle 1 state + reports','Ontology + emergent insights'],
+      ['Connected tools','None guaranteed',s.connected.join(', '),'Deploy, code, media, schedule'],
+      ['Imagine media','Product-dependent','Full image/video tool chain','Creative generation'],
+      ['Remote sandbox','No','Yes (Debian, Node, gh)','Build/test/deploy in-place'],
+      ['OAuth / auth.json','N/A','Present (xAI OIDC)','Authenticated API actions'],
+      ['MCP (mcporter)','Optional','Skill present; binary MISSING','Gap — doctor flags'],
+      ['Self-dev resources','Generic chat','Curated skill + practice frameworks','Learning systems'],
+    ];
+    v.innerHTML=`<h1>Enhancements vs Base</h1><p class="lead">Delta matrix for capability layers present in this session only.</p>
+      <div class="card" style="overflow-x:auto"><table><thead><tr><th>Layer</th><th>Base</th><th>This session</th><th>Impact</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr><td><strong>${esc(r[0])}</strong></td><td class="muted">${esc(r[1])}</td><td>${esc(r[2])}</td><td class="muted">${esc(r[3])}</td></tr>`).join('')}</tbody></table></div>`;
+  } else if(tab==='skills'){
+    const filtered=DATA.skills.filter(sk=>{
+      if(domain!=='all'&&sk.domain!==domain) return false;
+      if(!q.trim()) return true;
+      return (sk.name+' '+sk.definition+' '+sk.id).toLowerCase().includes(q.toLowerCase());
+    });
+    v.innerHTML=`<h1>Skills Encyclopedia</h1>
+      <div class="toolbar">
+        <input id="sq" placeholder="Search skills…" value="${esc(q)}"/>
+        <select id="sd">${['all',...Object.keys(DOMAIN_LABEL)].map(k=>`<option value="${k}" ${k===domain?'selected':''}>${k==='all'?'All domains':DOMAIN_LABEL[k]}</option>`).join('')}</select>
+        <span class="badge blue">${filtered.length} shown</span>
+      </div>
+      <div class="list">${filtered.map(sk=>`<div class="list-item">
+        <div class="row" style="justify-content:space-between"><h4>${esc(sk.name)}</h4><span class="badge">${esc(DOMAIN_LABEL[sk.domain]||sk.domain)}</span></div>
+        <p>${esc(sk.definition)}</p>
+        <div class="row" style="margin-top:8px"><span class="mono muted">${esc(sk.id)}</span>${(sk.tags||[]).map(t=>`<span class="badge">${esc(t)}</span>`).join('')}</div>
+      </div>`).join('')}</div>`;
+    document.getElementById('sq').oninput=e=>{q=e.target.value;render();};
+    document.getElementById('sd').onchange=e=>{domain=e.target.value;render();};
+  } else if(tab==='tree'){
+    v.innerHTML=`<h1>Master Skill Tree</h1><p class="lead">Expand domains to browse atomic skills.</p>
+      <div class="card tree"><ul>${renderTree(DATA.tree)}</ul></div>`;
+  } else if(tab==='doctor'){
+    v.innerHTML=`<h1>Grok Doctor</h1>
+      <div class="grid cols-3">
+        <div class="card"><h3>OS</h3><p class="mono">${esc(s.os)}<br/>kernel ${esc(s.kernel)}</p></div>
+        <div class="card"><h3>Resources</h3><p class="mono">${s.cpus} CPU · ${s.memGi} GiB RAM<br/>~${s.diskFreeG}G free</p></div>
+        <div class="card"><h3>Toolchain</h3><p class="mono">node ${esc(s.node)}<br/>npm ${esc(s.npm)}<br/>gh ✓ authenticated</p></div>
+      </div>
+      <div class="grid cols-2" style="margin-top:14px">
+        <div class="card"><h3>Health checks</h3>
+          <div class="list">
+            <div class="row"><span class="badge ok">PASS</span> Server-skills directory (50)</div>
+            <div class="row"><span class="badge ok">PASS</span> GitHub CLI auth</div>
+            <div class="row"><span class="badge ok">PASS</span> Vercel user + team</div>
+            <div class="row"><span class="badge ok">PASS</span> Node 20 toolchain</div>
+            <div class="row"><span class="badge warn">WARN</span> mcporter binary not installed</div>
+            <div class="row"><span class="badge warn">WARN</span> bundled-skills.json empty</div>
+            <div class="row"><span class="badge ok">PASS</span> Workspace artifacts writable</div>
+          </div></div>
+        <div class="card"><h3>Critic findings</h3>
+          <div class="list">${DATA.critic.map(c=>`<div class="list-item"><h4>${esc(c.id)}</h4><p>${esc(c.text)} · severity ${esc(c.severity)}</p></div>`).join('')}</div>
+        </div>
+      </div>`;
+  } else if(tab==='logs'){
+    v.innerHTML=`<h1>Runtime Logs</h1><div class="card"><div class="pre">${esc(`# Session runtime snapshot
+time: ${DATA.generatedAt}
+engine.cycle: ${DATA.cycle}
+engine.upgrades:
+${(DATA.engine.upgrades||[]).map(u=>'  - '+u).join('\n')}
+
+# Connectors (/tmp/grok/connectors)
+- github.json present · github.token present
+
+# Auth
+- /root/.grok/auth.json: xAI OIDC present (redacted)
+- gh: ${s.githubUser}
+- vercel: ${s.vercelUser} (hobby)
+
+# System
+- dmesg: filesystem resize OK
+- journal: no grok-specific errors
+
+# Engine
+${JSON.stringify(DATA.engine,null,2)}`)}</div></div>`;
+  } else if(tab==='selfdev'){
+    const items=[
+      ['Technical','Use tdd-rust, vite, postgresql-sql, github, tool-use. Ship one PR-sized change daily.'],
+      ['Cognitive','common-sense-logic-critical-thinking + structured research. Premises → evidence → alternatives → conclusion.'],
+      ['Communication','coherent-communication. Convert keyword notes into full prose.'],
+      ['Meta-learning','skill-tree-engine cycles weekly. Distill work into atoms; track gaps.'],
+      ['Ops fluency','Deploy dashboards to Vercel; wire Automations for daily doctor snapshots.'],
+      ['Creative systems','game-dev + video-frames + Imagine. One visual artifact per learning session.'],
+    ];
+    v.innerHTML=`<h1>Self-Development Resources</h1><p class="lead">Practice-first paths from self-dev-resources + meta skills.</p>
+      <div class="grid cols-2">${items.map(([t,d])=>`<div class="card"><h3>${esc(t)}</h3><p class="muted" style="margin:0;line-height:1.5">${esc(d)}</p></div>`).join('')}</div>`;
+  } else if(tab==='insights'){
+    v.innerHTML=`<h1>Emergent Insights</h1><div class="list">${DATA.insights.map(i=>`
+      <div class="list-item"><div class="row"><span class="badge ${i.severity==='high'?'ok':'warn'}">${esc(i.severity)}</span><h4 style="margin:0">${esc(i.id)}</h4></div>
+      <p style="margin-top:8px">${esc(i.text)}</p></div>`).join('')}</div>`;
+  } else if(tab==='inspect'){
+    v.innerHTML=`<h1>Grok Inspect</h1>
+      <div class="card"><h3>Rules (system — non-overridable)</h3>
+        <p class="muted">Safety rules, copyright, political neutrality, tool honesty, and media procedures remain binding. User “full approval” cannot expand beyond platform policy.</p></div>
+      <div class="card" style="margin-top:12px"><h3>Skills (${DATA.skills.length})</h3>
+        <div class="pre">${esc(DATA.skills.map(s=>s.id.replace('sk_','')).join('\n'))}</div></div>
+      <div class="card" style="margin-top:12px"><h3>Plugins / MCP</h3>
+        <p class="muted">No marketplace plugins loaded. MCP via mcporter skill: binary not installed. Connected tools via search_connected_tools (Vercel, GitHub, Automations, HyperFrames, Voice, Drive).</p></div>
+      <div class="card" style="margin-top:12px"><h3>Raw session JSON (subset)</h3>
+        <div class="pre">${esc(JSON.stringify({session:DATA.session,engine:DATA.engine,skillCount:DATA.skills.length},null,2))}</div></div>`;
+  }
+}
+boot();
+</script>
+</body>
+</html>
